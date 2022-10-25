@@ -12,23 +12,46 @@ def connection():
         connection.rollback()
         print("Error: ",error)
     
-# def insert_query(query, data):
-#     try:
-#         con = connection()
-            
+def login():
+    rut = input("Ingrese su rut: ")
+    contraseña = input("Ingrese su contraseña: ")
+    if rut == "ADMIN" and contraseña =="NegocioJuanita":
+        print("ADMIN")
+    else:
+        results = login_query(rut,contraseña)
+        try:
+            if results[0][1] == rut and results[0][2] == contraseña:
+                print("Login valido")
+        except:
+            print("Usuario o contraseña invalidas")
+            print("Desea registrarse? ()")
+        
+    
+def login_query(rut,password):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM cliente WHERE usuario = %s AND password = %s",(rut,password))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
 
-class Usuario:
-    def __init__(self,rut,contraseña):
-        self.rut = rut
-        self.contraseña = contraseña
-        self.saldo = 0
-    def getRut(self):
-        return rut
-    def getContraseña(self):
-        return contraseña
-    def __str__(self):
-        return rut,contraseña
-rut = input("Ingrese su rut: ")
-contraseña = input("Ingrese su contraseña: ")
-usuario = Usuario(rut,contraseña)
-print(usuario.__str__())
+# class Usuario:
+#     def __init__(self,rut,contraseña):
+#         self.rut = rut
+#         self.contraseña = contraseña
+#        self.saldo = 0
+#     def getRut(self):
+#         return rut
+#     def getContraseña(self):
+#         return contraseña
+#     def __str__(self):
+#         return rut,contraseña
+    
+login()
+
+
+
+
+#usuario = Usuario(rut,contraseña)
+#print(usuario.__str__())
