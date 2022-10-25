@@ -12,10 +12,34 @@ def connection():
         connection.rollback()
         print("Error: ",error)
  
+ 
+def register_query(rut,contraseña):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("INSERT INTO cliente (rut,password) values(%s,%s)",(rut,contraseña))
+        con.commit()
+    except(Exception, Error) as error:
+        print("Error: %s" % error)
+
 def register():
     rut = input("Ingrese su rut: ")
     contraseña = input("Ingrese su contraseña: ")
+    validar_contraseña = input("Ingrese su contraseña nuevamente: ")
     
+    if contraseña == validar_contraseña:
+        register_query(rut,contraseña)
+    else:
+        print("Las contraseñas no coinciden")        
+        
+def login_query(rut,password):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM cliente WHERE rut = %s AND password = %s",(rut,password))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
     
 def login():
     rut = input("Ingrese su rut: ")
@@ -29,17 +53,10 @@ def login():
                 print("Login valido")
         except:
             print("RUT o contraseña invalidas")
-            print("Desea registrarse? ()")
-        
+            validacion = input("Desea registrarse? (si - no): ")
+            if(validacion.lower() == "si"):
+                register()        
     
-def login_query(rut,password):
-    try:
-        con = connection()
-        cursor = con.cursor()
-        cursor.execute("SELECT * FROM cliente WHERE usuario = %s AND password = %s",(rut,password))
-        return cursor.fetchall()
-    except(Exception, Error) as error:
-        print(error)
 
 # class Usuario:
 #     def __init__(self,rut,contraseña):
