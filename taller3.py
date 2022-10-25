@@ -11,6 +11,11 @@ def connection():
     except (Exception, Error) as error:
         connection.rollback()
         print("Error: ",error)
+ 
+def register():
+    rut = input("Ingrese su rut: ")
+    contraseña = input("Ingrese su contraseña: ")
+    
     
 def login():
     rut = input("Ingrese su rut: ")
@@ -20,10 +25,10 @@ def login():
     else:
         results = login_query(rut,contraseña)
         try:
-            if results[0][1] == rut and results[0][2] == contraseña:
+            if results[0][0] == rut and results[0][1] == contraseña:
                 print("Login valido")
         except:
-            print("Usuario o contraseña invalidas")
+            print("RUT o contraseña invalidas")
             print("Desea registrarse? ()")
         
     
