@@ -39,6 +39,7 @@ def register():
     
     if contraseña == validar_contraseña:
         register_query(rut,contraseña)
+        print("Registro terminado con exito")
     else:
         print("Las contraseñas no coinciden")        
         
@@ -61,7 +62,10 @@ def digito_verificador(rut):
  
 def format_rut(rut):
     rut = rut.replace(".","").replace("-","")
-    rut = rut[0:len(rut)-1] + "-" + rut[len(rut)-1:len(rut)]
+    if (rut[len(rut)-1:len(rut)] == 'k' or rut[len(rut)-1:len(rut)] == 'K' ):
+        rut = rut[0:len(rut)-1] + "-K" 
+    else:
+        rut = rut[0:len(rut)-1] + "-" + rut[len(rut)-1:len(rut)]
     return rut
 
 def validar_rut(rut):
@@ -89,7 +93,8 @@ def login():
             if(validacion.lower() == "si"):
                 register()        
     
-
+def menu_usuario(rut):
+    return
 # class Usuario:
 #     def __init__(self,rut,contraseña):
 #         self.rut = rut
