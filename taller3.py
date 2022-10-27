@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from itertools import cycle
 from psycopg2 import connect, Error
 """
 Created on Mon Oct 24 20:24:04 2022
@@ -23,7 +24,16 @@ def register_query(rut,contraseña):
         print("Error: %s" % error)
 
 def register():
-    rut = input("Ingrese su rut: ")
+    rut = format_rut(input("Ingrese su rut: "))
+    if validar_rut(rut)==False:    
+        while True:
+            rut = input("Rut invalido, ingrese uno valido (Si no desea continuar ingrese 'No'): ")
+            if rut.lower() == 'no':
+                return
+            rut = format_rut(rut)
+            if validar_rut(rut):
+                break
+    
     contraseña = input("Ingrese su contraseña: ")
     validar_contraseña = input("Ingrese su contraseña nuevamente: ")
     
@@ -41,8 +51,30 @@ def login_query(rut,password):
     except(Exception, Error) as error:
         print(error)
     
+def digito_verificador(rut):
+    reversed_digits = map(int, reversed(str(rut)))
+    factors = cycle(range(2, 8))
+    s = sum(d * f for d, f in zip(reversed_digits, factors))
+    #print(-s % 11)
+    return (-s) % 11
+    
+ 
+def format_rut(rut):
+    rut = rut.replace(".","").replace("-","")
+    rut = rut[0:len(rut)-1] + "-" + rut[len(rut)-1:len(rut)]
+    return rut
+
+def validar_rut(rut):
+    partes = rut.split("-")
+    digito = digito_verificador(partes[0])
+    if digito == 10 and partes[1] == "K":
+        return True
+    if digito == int(partes[1]):
+        return True
+    return False
+    
 def login():
-    rut = input("Ingrese su rut: ")
+    rut = format_rut(input("Ingrese su rut: "))
     contraseña = input("Ingrese su contraseña: ")
     if rut == "ADMIN" and contraseña =="NegocioJuanita":
         print("ADMIN")
@@ -70,8 +102,11 @@ def login():
 #     def __str__(self):
 #         return rut,contraseña
     
-login()
-
+while True:
+    login()
+    terminar = input("Desea finalizar el programa (si-no):  ")
+    if terminar.lower() == 'si':
+        break
 
 
 
