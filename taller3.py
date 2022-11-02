@@ -18,7 +18,7 @@ def register_query(rut,contraseña):
     try:
         con = connection()
         cursor = con.cursor()
-        cursor.execute("INSERT INTO cliente (rut,password) values(%s,%s)",(rut,contraseña))
+        cursor.execute("INSERT INTO cliente (rut,password,saldo) values(%s,%s,0)",(rut,contraseña))
         con.commit()
     except(Exception, Error) as error:
         print("Error: %s" % error)
@@ -93,7 +93,15 @@ def login():
             validacion = input("Desea registrarse? (si - no): ")
             if(validacion.lower() == "si"):
                 register()        
-  
+ 
+def cambiar_pass_query(rut,password):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("UPDATE cliente SET password = %s WHERE rut = %s;",(password, rut))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error)   
   
 def cambiar_password(rut,password):
     pass_vef = input("Ingrese su anterior contraseña: ")
@@ -104,16 +112,58 @@ def cambiar_password(rut,password):
             return
         new_vef = input("Ingrese nuevamente la contraseña: ")
         if new_pass == new_vef:
-            con = connection()
-            cursor = con.cursor()
-            cursor.execute("UPDATE cliente SET password = %s WHERE rut = %s;",(new_pass, rut))
-            con.commit()
+            cambiar_pass_query(rut,new_pass)
             print("Contraseña cambiada con exito")
         else:
             print("La contraseña no coincide")
     else:
         print("La contraseña no coincide")
-    
+   
+def elegir_producto(rut,password):
+    pass   
+
+def obtener_saldo_query(rut):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM cliente WHERE rut = %s",(rut,))
+        #Poner * queda con mejor formato
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+
+def ver_saldo(rut):
+    data = obtener_saldo_query(rut)
+    print("Tu saldo es:",data[0][2])
+
+def agregar_saldo_query(rut,saldo):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("UPDATE cliente SET saldo = %s WHERE rut = %s;",(saldo, rut))
+        con.commit()
+    except(Exception, Error) as error:
+        print(error) 
+
+
+def recargar_saldo(rut):
+    try:
+        nuevo_saldo = int(input("Ingrese el saldo a agregar: "))
+        saldo = int(obtener_saldo_query(rut)[0][2]) + nuevo_saldo
+        agregar_saldo_query(rut,saldo)
+        print("Saldo agregado con exito")
+    except:
+        print("Ocurrio un error, por favor ingrese numeros validos")
+
+def ver_carrito(rut,contraseña):
+    pass
+
+def quitar_carrito(rut,contraseña):
+    pass
+
+def pagar_carrito(rut,contraseña):
+    pass
+
 def menu_usuario(rut,contraseña):
     while True:
         print ("Bienvenido, que desea hacer ?")
@@ -126,14 +176,25 @@ def menu_usuario(rut,contraseña):
         print ("7) Pagar carrito")
         try:
             opcion = int(input("Eliga opcion (8 para salir): "))
-            if opcion > 8 or opcion < 0:
-                print ("Opcion invalida")
-                
             if opcion == 8:
                 break
             
             if opcion == 1:
                 cambiar_password(rut,contraseña)
+            elif opcion == 2:
+                elegir_producto(rut,contraseña)
+            elif opcion == 3:
+                ver_saldo(rut)
+            elif opcion == 4:
+                recargar_saldo(rut)
+            elif opcion == 5:
+                ver_carrito(rut,contraseña)
+            elif opcion == 6:
+                quitar_carrito(rut,contraseña)
+            elif opcion == 7:
+                pagar_carrito(rut,contraseña)
+            else:
+                print("Opcion invalida")
         except:
             print("Por favor ingrese un numero")
     return
