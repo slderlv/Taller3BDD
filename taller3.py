@@ -87,13 +87,55 @@ def login():
         try:
             if results[0][0] == rut and results[0][1] == contraseña:
                 print("Login valido")
+                menu_usuario(rut,contraseña)
         except:
             print("RUT o contraseña invalidas")
             validacion = input("Desea registrarse? (si - no): ")
             if(validacion.lower() == "si"):
                 register()        
+  
+  
+def cambiar_password(rut,password):
+    pass_vef = input("Ingrese su anterior contraseña: ")
+    if pass_vef == password:
+        new_pass = input("Ingrese la nueva contraseña: ")
+        if new_pass == password:
+            print("La contraseña es igual a la anterior")
+            return
+        new_vef = input("Ingrese nuevamente la contraseña: ")
+        if new_pass == new_vef:
+            con = connection()
+            cursor = con.cursor()
+            cursor.execute("UPDATE cliente SET password = %s WHERE rut = %s;",(new_pass, rut))
+            con.commit()
+            print("Contraseña cambiada con exito")
+        else:
+            print("La contraseña no coincide")
+    else:
+        print("La contraseña no coincide")
     
-def menu_usuario(rut):
+def menu_usuario(rut,contraseña):
+    while True:
+        print ("Bienvenido, que desea hacer ?")
+        print ("1) Cambiar contraseña")
+        print ("2) Elegir un producto")
+        print ("3) Ver saldo")
+        print ("4) Recargar saldo")
+        print ("5) Ver carrito")
+        print ("6) Quitar del carrito")
+        print ("7) Pagar carrito")
+        try:
+            opcion = int(input("Eliga opcion (8 para salir): "))
+            if opcion > 8 or opcion < 0:
+                print ("Opcion invalida")
+                
+            if opcion == 8:
+                break
+            
+            if opcion == 1:
+                cambiar_password(rut,contraseña)
+        except:
+            print("Por favor ingrese un numero")
     return
 # class Usuario:
 #     def __init__(self,rut,contraseña):
