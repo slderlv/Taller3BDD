@@ -325,17 +325,38 @@ def ver_carrito(rut):
         contador = 1
         for compra in compras_productos:
             producto = obtener_producto_id(compra[2])
-            print("{}) {} , cantidad: {} -> precio final {}$".format(contador,producto[0][1],compra[3],producto[0][3]*compra[3]))
-            contador+=1
+            if(compra[3]) != 0:
+                print("{}) {} , cantidad: {} -> precio final {}$".format(contador,producto[0][1],compra[3],producto[0][3]*compra[3]))
+                contador+=1
     else:
         print("CARRITO VACIO")
 
-                
+def quitar_carrito(rut):
+    compras = compras_usuario(rut)
+    ultima_compra = compras[len(compras)-1][0]
+    ver_carrito(rut)
+    producto = input("Que producto desea quitar: ")
+    producto_real = obtener_datos_producto(producto)
     
-            
-
-def quitar_carrito(rut,contraseña):
-    pass
+    if len(producto_real) == 0:
+        print("No existe el producto")
+        return 
+    else:
+        try:
+            cantidad = int(input("Ingrese la cantidad a quitar: "))
+            carrito = obtener_compra_producto(ultima_compra)
+            if cantidad > 0:
+                for producto in carrito:
+                    if producto[2] == producto_real[0][0] and producto[3] >= cantidad:
+                        edit_compra_producto(ultima_compra,producto[2],producto[3] - cantidad)
+                        update_stock(producto_real[0][1],producto_real[0][2] + cantidad)
+                        print("Eliminado con exito")
+            else:
+                print("ingrese un numero valido")
+                    
+        except:
+            print("Ingrese un numero valido")
+                
 
 def pagar_carrito(rut,contraseña):
     pass
@@ -366,7 +387,7 @@ def menu_usuario(rut,contraseña):
             elif opcion == 5:
                 ver_carrito(rut)
             elif opcion == 6:
-                quitar_carrito(rut,contraseña)
+                quitar_carrito(rut)
             elif opcion == 7:
                 pagar_carrito(rut,contraseña)
             else:
