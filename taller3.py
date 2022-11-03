@@ -225,6 +225,7 @@ def elegir_producto(rut):
             else:
                 #Ya ha comprado
                 compras = obtener_compras(rut)
+                
                 if compras[len(compras)-1][2] == "CARRITO":
                     if cantidad <= datos[0][2]:
                         update_stock(producto, datos[0][2]-cantidad)
@@ -246,6 +247,7 @@ def elegir_producto(rut):
                     if cantidad <= datos[0][2]:
                         agregar_compra(rut)
                         update_stock(producto, datos[0][2]-cantidad)
+                        compras = obtener_compras(rut)
                         id_compra = compras[len(compras)-1][0]
                         compra_producto = obtener_compra_producto(id_compra)
                         if (len (compra_producto)==0):
@@ -320,7 +322,6 @@ def ver_carrito(rut):
     ultima_compra = compras[len(compras)-1][0]
     compras_productos = obtener_compra_producto(ultima_compra)
 
-    print(compras_productos)
     print("\nCARRITO ")
     if compras[len(compras)-1][2] == "CARRITO":
         contador = 1
@@ -329,6 +330,8 @@ def ver_carrito(rut):
             if(compra[3]) != 0:
                 print("{}) {} , cantidad: {} -> precio final {}$".format(contador,producto[0][1],compra[3],producto[0][3]*compra[3]))
                 contador+=1
+        if contador == 1:
+            print("CARRITO VACIO")
     else:
         print("CARRITO VACIO")
 
