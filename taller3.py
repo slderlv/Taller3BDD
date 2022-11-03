@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from itertools import cycle
 from psycopg2 import connect, Error
+import time
 """
 Created on Mon Oct 24 20:24:04 2022
 """
@@ -159,7 +160,7 @@ def agregar_compra(rut):
     try:
         con = connection()
         cursor = con.cursor()
-        cursor.execute("INSERT INTO compra(id,rut_user,estado) VALUES (default, %s, 'CARRITO')",(rut,))
+        cursor.execute("INSERT INTO compra(id,rut_user,estado,fecha) VALUES (default, %s, 'CARRITO', null)",(rut,))
         con.commit()    
     except(Exception, Error) as error:
         print(error) 
@@ -371,6 +372,15 @@ def confirmar_compra(id_compra):
     except(Exception, Error) as error:
         print(error) 
 
+def poner_fecha(id_compra,fecha):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("UPDATE compra SET fecha = %s WHERE id = %s;",(fecha,id_compra))
+        con.commit()
+    except(Exception, Error) as error:
+        print(error) 
+
 def pagar_carrito(rut,password):
     compras = compras_usuario(rut)
     ultima_compra = compras[len(compras)-1][0]
@@ -392,6 +402,7 @@ def pagar_carrito(rut,password):
             if saldo[0][2] >= sumador:
                 print("PAGADO CON EXITO")
                 confirmar_compra(ultima_compra)
+                poner_fecha(ultima_compra,time.strftime('%x'))
             else:
                 print("No tienes el suficiente saldo")
             
