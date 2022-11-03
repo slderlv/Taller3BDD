@@ -182,6 +182,15 @@ def obtener_compras(rut):
     except(Exception, Error) as error:
         print(error)
     
+def edit_compra_producto(id_compra,id_prod,cantidad):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("UPDATE compra_producto SET cantidad = %s WHERE id_compra = %s AND id_producto = %s",(cantidad,id_compra,id_prod))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error) 
+
 
 def elegir_producto(rut):
     while True:
@@ -199,21 +208,56 @@ def elegir_producto(rut):
                 if cantidad <= datos[0][2]:
                     agregar_compra(rut)
                     update_stock(producto, datos[0][2]-cantidad)
-                    agregar_compra_producto(1,datos[0][0],cantidad)
+                    compras_nuevo = compras_usuario(rut)
+                    id_compra = compras_nuevo[0][0]
+                    compra_producto = obtener_compra_producto(id_compra)
+                    if (len (compra_producto)==0):
+                        agregar_compra_producto(id_compra,datos[0][0],cantidad)
+                    else:
+                        flag = False
+                        for i in range(len(compra_producto)):
+                            if compra_producto[i][2] == datos[0][0]:
+                                edit_compra_producto(id_compra,datos[0][0],cantidad+compra_producto[i][3])
+                                flag = True
+                            if not flag:
+                                agregar_compra_producto(id_compra,datos[0][0],cantidad)
+                            
             else:
                 #Ya ha comprado
                 compras = obtener_compras(rut)
                 if compras[len(compras)-1][2] == "CARRITO":
                     if cantidad <= datos[0][2]:
                         update_stock(producto, datos[0][2]-cantidad)
-                        agregar_compra_producto(compras[len(compras)-1][0],datos[0][0],cantidad)
+                        id_compra = compras[len(compras)-1][0]
+                        compra_producto = obtener_compra_producto(id_compra)
+                        if (len (compra_producto)==0):
+                            agregar_compra_producto(id_compra,datos[0][0],cantidad)
+                        else:
+                            flag = False
+                            for i in range(len(compra_producto)):
+                                if compra_producto[i][2] == datos[0][0]:
+                                    edit_compra_producto(id_compra,datos[0][0],cantidad+compra_producto[i][3])
+                                    flag = True
+                            if not flag:
+                                agregar_compra_producto(id_compra,datos[0][0],cantidad)
                     else:
                         print("Por favor ingrese una cantidad valida")
                 else:
                     if cantidad <= datos[0][2]:
                         agregar_compra(rut)
                         update_stock(producto, datos[0][2]-cantidad)
-                        agregar_compra_producto(compras[len(compras)-1][0],datos[0][0],cantidad)
+                        id_compra = compras[len(compras)-1][0]
+                        compra_producto = obtener_compra_producto(id_compra)
+                        if (len (compra_producto)==0):
+                            agregar_compra_producto(id_compra,datos[0][0],cantidad)
+                        else:
+                            flag = False
+                            for i in range(len(compra_producto)):
+                                if compra_producto[i][2] == datos[0][0]:
+                                    edit_compra_producto(id_compra,datos[0][0],cantidad+compra_producto[i][3])
+                                    flag = True
+                            if not flag:
+                                agregar_compra_producto(id_compra,datos[0][0],cantidad)
                     else:
                         print("Por favor ingrese una cantidad valida")
         except:
@@ -272,24 +316,19 @@ def obtener_producto_id(id_producto):
         print(error)
 
 def ver_carrito(rut):
-    carrito = []
-    stock = []
     compras = compras_usuario(rut)
     ultima_compra = compras[len(compras)-1][0]
     compras_productos = obtener_compra_producto(ultima_compra)
 
     print("\nCARRITO ")
-    for i in range(len(compras_productos)):
-        if compras_productos[i][2] not in carrito:
-            carrito.append(compras_productos[i][2])
-            stock.append(compras_productos[i][3])
-        for j in range(i + 1, len(compras_productos)):
-            if compras_productos[i][2] == compras_productos[j][2]:
-                stock[i] += compras_productos[j][3]
-
-    for i in range(len(carrito)):
-        producto = obtener_producto_id(carrito[i])
-        print("{}, cantidad: {}, precio final: {} ".format(producto[0][1],stock[i],stock[i]*int(producto[0][3])))
+    if compras[len(compras)-1][2] == "CARRITO":
+        contador = 1
+        for compra in compras_productos:
+            producto = obtener_producto_id(compra[2])
+            print("{}) {} , cantidad: {} -> precio final {}$".format(contador,producto[0][1],compra[3],producto[0][3]*compra[3]))
+            contador+=1
+    else:
+        print("CARRITO VACIO")
 
                 
     
