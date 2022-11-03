@@ -253,8 +253,47 @@ def recargar_saldo(rut):
     except:
         print("Ocurrio un error, por favor ingrese numeros validos")
 
+def obtener_compra_producto(id_compra):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM compra_producto WHERE id_compra = %s",(id_compra,))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+
+def obtener_producto_id(id_producto):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM producto WHERE id = %s",(id_producto,))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+
 def ver_carrito(rut):
-    pass
+    carrito = []
+    stock = []
+    compras = compras_usuario(rut)
+    ultima_compra = compras[len(compras)-1][0]
+    compras_productos = obtener_compra_producto(ultima_compra)
+
+    print("\nCARRITO ")
+    for i in range(len(compras_productos)):
+        if compras_productos[i][2] not in carrito:
+            carrito.append(compras_productos[i][2])
+            stock.append(compras_productos[i][3])
+        for j in range(i + 1, len(compras_productos)):
+            if compras_productos[i][2] == compras_productos[j][2]:
+                stock[i] += compras_productos[j][3]
+
+    for i in range(len(carrito)):
+        producto = obtener_producto_id(carrito[i])
+        print("{}, cantidad: {}, precio final: {} ".format(producto[0][1],stock[i],stock[i]*int(producto[0][3])))
+
+                
+    
+            
 
 def quitar_carrito(rut,contraseña):
     pass
