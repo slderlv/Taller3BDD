@@ -320,6 +320,7 @@ def ver_carrito(rut):
     ultima_compra = compras[len(compras)-1][0]
     compras_productos = obtener_compra_producto(ultima_compra)
 
+    print(compras_productos)
     print("\nCARRITO ")
     if compras[len(compras)-1][2] == "CARRITO":
         contador = 1
@@ -358,8 +359,41 @@ def quitar_carrito(rut):
             print("Ingrese un numero valido")
                 
 
-def pagar_carrito(rut,contraseña):
-    pass
+def confirmar_compra(id_compra):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("UPDATE compra SET estado = 'COMPRADO' WHERE id = %s;",(id_compra,))
+        con.commit()
+    except(Exception, Error) as error:
+        print(error) 
+
+def pagar_carrito(rut,password):
+    compras = compras_usuario(rut)
+    ultima_compra = compras[len(compras)-1][0]
+    compras_productos = obtener_compra_producto(ultima_compra)
+    sumador = 0
+    print("\nCARRITO ")
+    if compras[len(compras)-1][2] == "CARRITO":
+        contador = 1
+        for compra in compras_productos:
+            producto = obtener_producto_id(compra[2])
+            if(compra[3]) != 0:
+                print("{}) {} , cantidad: {} -> precio final {}$".format(contador,producto[0][1],compra[3],producto[0][3]*compra[3]))
+                sumador += producto[0][3] * compra[3]
+                contador+=1
+        print("SUBTOTAL = " + str(sumador))
+        confirmacion = input("Desea pagar (si-no)")
+        saldo = login_query(rut,password)
+        if confirmacion.lower() == 'si' :
+            if saldo[0][2] >= sumador:
+                print("PAGADO CON EXITO")
+                confirmar_compra(ultima_compra)
+            else:
+                print("No tienes el suficiente saldo")
+            
+    else:
+        print("CARRITO VACIO")
 
 def menu_usuario(rut,contraseña):
     while True:
