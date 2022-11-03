@@ -119,8 +119,106 @@ def cambiar_password(rut,password):
     else:
         print("La contraseña no coincide")
    
-def elegir_producto(rut,password):
-    pass   
+def mostrar_productos_query():
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM producto")
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+
+def obtener_datos_producto(producto):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM producto WHERE nombre = %s",(producto,))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+
+def update_stock(producto, cantidad):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("UPDATE producto SET stock = %s WHERE nombre = %s;",(cantidad, producto))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error)  
+
+def compras_usuario(rut):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM compra WHERE rut_user = %s",(rut,))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+        
+def agregar_compra(rut):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("INSERT INTO compra(id,rut_user,estado) VALUES (default, %s, 'CARRITO')",(rut,))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error) 
+     
+def agregar_compra_producto(id_compra,id_producto,cantidad):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("INSERT INTO compra_producto(id,id_compra,id_producto,cantidad) VALUES (default, %s,%s,%s )",(id_compra,id_producto,cantidad))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error) 
+
+def obtener_compras(rut):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM compra WHERE rut_user = %s",(rut,))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+    
+
+def elegir_producto(rut):
+    while True:
+        products = mostrar_productos_query()
+        for product in products:
+            print("{}) {} -> {}$ (STOCK DISPONIBLE: {})".format(product[0],product[1],product[3],product[2]))
+        producto = input("Ingrese que producto quiere agregar al carrito: ('salir' para salir) ")
+        if producto.lower() == "salir":
+            return
+        datos = obtener_datos_producto(producto)
+        try:
+            cantidad = int(input("Que cantidad desea agregar de {} (STOCK: {}): ".format(datos[0][1],datos[0][2])))
+            compras = compras_usuario(rut)
+            if len(compras) == 0:
+                if cantidad <= datos[0][2]:
+                    agregar_compra(rut)
+                    update_stock(producto, datos[0][2]-cantidad)
+                    agregar_compra_producto(1,datos[0][0],cantidad)
+            else:
+                #Ya ha comprado
+                compras = obtener_compras(rut)
+                if compras[len(compras)-1][2] == "CARRITO":
+                    if cantidad <= datos[0][2]:
+                        update_stock(producto, datos[0][2]-cantidad)
+                        agregar_compra_producto(compras[len(compras)-1][0],datos[0][0],cantidad)
+                    else:
+                        print("Por favor ingrese una cantidad valida")
+                else:
+                    if cantidad <= datos[0][2]:
+                        agregar_compra(rut)
+                        update_stock(producto, datos[0][2]-cantidad)
+                        agregar_compra_producto(compras[len(compras)-1][0],datos[0][0],cantidad)
+                    else:
+                        print("Por favor ingrese una cantidad valida")
+        except:
+            print("Por favor ingrese un valor numerico")
+       
 
 def obtener_saldo_query(rut):
     try:
@@ -155,7 +253,7 @@ def recargar_saldo(rut):
     except:
         print("Ocurrio un error, por favor ingrese numeros validos")
 
-def ver_carrito(rut,contraseña):
+def ver_carrito(rut):
     pass
 
 def quitar_carrito(rut,contraseña):
@@ -182,13 +280,13 @@ def menu_usuario(rut,contraseña):
             if opcion == 1:
                 cambiar_password(rut,contraseña)
             elif opcion == 2:
-                elegir_producto(rut,contraseña)
+                elegir_producto(rut)
             elif opcion == 3:
                 ver_saldo(rut)
             elif opcion == 4:
                 recargar_saldo(rut)
             elif opcion == 5:
-                ver_carrito(rut,contraseña)
+                ver_carrito(rut)
             elif opcion == 6:
                 quitar_carrito(rut,contraseña)
             elif opcion == 7:
@@ -198,25 +296,9 @@ def menu_usuario(rut,contraseña):
         except:
             print("Por favor ingrese un numero")
     return
-# class Usuario:
-#     def __init__(self,rut,contraseña):
-#         self.rut = rut
-#         self.contraseña = contraseña
-#        self.saldo = 0
-#     def getRut(self):
-#         return rut
-#     def getContraseña(self):
-#         return contraseña
-#     def __str__(self):
-#         return rut,contraseña
-    
+   
 while True:
     login()
     terminar = input("Desea finalizar el programa (si-no):  ")
     if terminar.lower() == 'si':
         break
-
-
-
-#usuario = Usuario(rut,contraseña)
-#print(usuario.__str__())
