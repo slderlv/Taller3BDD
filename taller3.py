@@ -77,13 +77,230 @@ def validar_rut(rut):
     if digito == int(partes[1]):
         return True
     return False
+
+def obtener_compras(rut):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM compra WHERE rut_user = %s",(rut,))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+        
+def obtener_compra_producto_id(id):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM compra_producto WHERE id_compra = %s",(id,))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+        
+def eliminar_compra_producto(id_compra):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("DELETE FROM compra_producto where id_compra = %s ;",(id_compra,))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error)  
+
+def eliminar_compra(rut):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("DELETE FROM compra where rut_user = %s ;",(rut,))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error)  
+
+def eliminar_usuario(rut):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("DELETE FROM cliente where rut = %s ;",(rut,))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error)  
+
+def obtener_usuario(rut):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM cliente WHERE rut = %s",(rut,))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+
+
+def bloquear_usuario(rut):
+    usuario = obtener_usuario(rut)
+    if len(usuario) != 0:    
+        compras = obtener_compras(rut)
+        for compra in compras:
+            eliminar_compra_producto(compra[0])
+        eliminar_compra(rut)
+        eliminar_usuario(rut)
+        print("ELIMINADO CON EXITO")
+    else:
+        print("No se encontro el usuario")
+
+def historial_de_compras_query(rut):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("SELECT * FROM compra INNER JOIN compra_producto ON compra.id = compra_producto.id_compra INNER JOIN producto ON producto.id = compra_producto.id_producto WHERE rut_user = %s AND estado = 'COMPRADO'",(rut,))
+        return cursor.fetchall()
+    except(Exception, Error) as error:
+        print(error)
+
+def historial_de_compras(rut):
     
+    data = historial_de_compras_query(rut)
+    if len(data) != 0:
+        print("{} Realizo las siguientes compras: ".format(rut))
+        for compra in data:
+            print("{} ({}) con fecha {}".format(compra[9],compra[7],compra[3]))
+    else:
+        print("No tiene compras o el usuario no existe")
+
+def insert_producto(nombre,precio,stock):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("INSERT INTO producto(id,nombre,stock,precio) VALUES(default,%s,%s,%s) ;",(nombre,stock,precio))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error)  
+
+def agregar_producto(nombre,precio,stock):
+    insert_producto(nombre,precio,stock)
+    print("Ingresado con exito")
+    
+    
+def agregar_stock(nombre,stock):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("UPDATE producto SET stock = %s WHERE nombre = %s",(stock,nombre))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error) 
+
+def cambiar_datos_producto(nuevo_nombre,nuevo_precio,nombre):
+    try:
+        con = connection()
+        cursor = con.cursor()
+        cursor.execute("UPDATE producto SET nombre = %s, precio = %s WHERE nombre = %s",(nuevo_nombre,nuevo_precio,nombre))
+        con.commit()    
+    except(Exception, Error) as error:
+        print(error) 
+
+def actualizar_datos():
+    data = mostrar_productos_query()
+    for producto in data:
+        print("{}) {} {}$".format(producto[0],producto[1],producto[3]))
+    nombre = input("Ingrese el nombre del producto para cambiar precio y/o nombre: ")
+    encontrado = False
+    for producto in data:
+        if nombre == producto[1]:
+            encontrado = True
+            try: 
+                nuevo_nombre = ''
+                nuevo_precio = 0
+                valid1 = input("Desea cambiar el nombre ? (si-no): ")
+                if valid1.lower() == "si":
+                    nuevo_nombre = input("Ingrese el nuevo nombre: ")
+                valid1 = input("Desea cambiar el precio ? (si-no): ")
+                if valid1.lower() == "si":
+                    nuevo_precio = input("Ingrese el nuevo precio: ")
+                
+                if nuevo_nombre != '' and nuevo_precio != 0:
+                    cambiar_datos_producto(nuevo_nombre,nuevo_precio,nombre)
+                elif nuevo_nombre == '' and nuevo_precio != 0:
+                    cambiar_datos_producto(nombre,nuevo_precio,nombre)
+                else:
+                    cambiar_datos_producto(nuevo_nombre,producto[3],nombre)
+            except:
+                print("NUMERO NO VALIDO")
+                        
+                        
+    if encontrado:
+        print("CAMBIADO CON EXITO")
+    else:
+        print("NO SE ENCONTRO EL PRODUCTO")
+
+
+def menu_admin():
+    while True:
+        print ("Bienvenido, que desea hacer ?")
+        print ("1) Bloquear usuario")#: Se escribe el nombre de usuario y se elimina de la base de datos. 
+        print ("2) Ver historial de compras")#: Se muestra un listado de las ventas realizadas con el Rut 
+                                    #del cliente que hizo la compra, el producto, la cantidad y la fecha en que se realizó.")
+        print ("3) Agregar producto")#: Se ingresa el nombre de un nuevo producto, su precio y el stock 
+                                    #inicial.")
+        print ("4) Agregar stock")#: Se ingresa el nombre de un producto y se añade un cierto stock.")
+        print ("5) Actualizar datos")#: Se ingresa el nombre de un producto y se modifica su precio y/o 
+                                                #nombre.")
+        try:
+            opcion = int(input("Eliga opcion (6 para salir): "))
+            if opcion == 6:
+                break
+            
+            if opcion == 1:
+                rut = format_rut(input("Digite el rut del usuario: "))
+                bloquear_usuario(rut)
+
+            elif opcion == 2:
+                rut = format_rut(input("Digite el rut del usuario: "))
+                historial_de_compras(rut)
+            elif opcion == 3:
+                try:
+                    nombre= input("Ingrese el nombre del producto: ")
+                    precio = int(input("Ingrese el precio del producto: "))
+                    stock = int(input("Ingrese el stock inicial del producto: "))
+                    agregar_producto(nombre,precio,stock)
+                except:
+                    print("Ocurrio un error")
+            elif opcion == 4:
+                data = mostrar_productos_query()
+                for producto in data:
+                    print("{}) {} (STOCK ACTUAL :{})".format(producto[0],producto[1],producto[2]))
+                nombre = input("Ingrese el nombre del producto para agregar stock: ")
+                encontrado = False
+                for producto in data:
+                    if nombre == producto[1]:
+                        encontrado = True
+                        try: 
+                            cantidad = int(input("Ingrese la cantidad de stock: "))
+                            if(cantidad > 0):
+                                agregar_stock(nombre,producto[2] + cantidad)
+                            else:
+                                print("INGRESE UN NUMERO VALIDO")
+                        except:
+                            print("NUMERO NO VALIDO")
+                        
+                        
+                if encontrado:
+                    print("STOCK AGREGADO")
+                else:
+                    print("NO SE ENCONTRO EL PRODUCTO")
+                        
+            elif opcion == 5:
+                actualizar_datos()
+            else:
+                print("Opcion invalida")
+        except:
+            print("Por favor ingrese un numero")
+    return
+
 def login():
-    rut = format_rut(input("Ingrese su rut: "))
+    rut = input("Ingrese su rut: ")
     contraseña = input("Ingrese su contraseña: ")
     if rut == "ADMIN" and contraseña =="NegocioJuanita":
-        print("ADMIN")
+        menu_admin()
     else:
+        rut = format_rut(rut)
         results = login_query(rut,contraseña)
         try:
             if results[0][0] == rut and results[0][1] == contraseña:
