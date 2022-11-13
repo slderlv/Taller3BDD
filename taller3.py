@@ -211,9 +211,13 @@ def actualizar_datos():
                 valid1 = input("Desea cambiar el nombre ? (si-no): ")
                 if valid1.lower() == "si":
                     nuevo_nombre = input("Ingrese el nuevo nombre: ")
-                valid1 = input("Desea cambiar el precio ? (si-no): ")
-                if valid1.lower() == "si":
+                valid2 = input("Desea cambiar el precio ? (si-no): ")
+                if valid2.lower() == "si":
                     nuevo_precio = input("Ingrese el nuevo precio: ")
+                
+                if valid1.lower() != 'si' and valid2.lower() != 'si':
+                    print("No hubo cambios")
+                    return
                 
                 if nuevo_nombre != '' and nuevo_precio != 0:
                     cambiar_datos_producto(nuevo_nombre,nuevo_precio,nombre)
@@ -613,7 +617,7 @@ def pagar_carrito(rut,password):
                 sumador += producto[0][3] * compra[3]
                 contador+=1
         print("SUBTOTAL = " + str(sumador))
-        confirmacion = input("Desea pagar (si-no)")
+        confirmacion = input("Desea pagar (si-no): ")
         saldo = login_query(rut,password)
         if confirmacion.lower() == 'si' :
             if saldo[0][2] >= sumador:
